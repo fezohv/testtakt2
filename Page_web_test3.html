@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Page Web avec Minuteur et Horloge</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+        }
+
+        h1 {
+            color: #336699;
+        }
+
+        #minuteur {
+            font-size: 48px;
+            color: #FF0000;
+        }
+
+        #horloge {
+            font-size: 24px;
+            color: #008000;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bienvenue sur ma page web avec minuteur et horloge</h1>
+    <p>Ceci est un exemple de page web avec un minuteur et une horloge en temps réel.</p>
+    
+    <div id="minuteur">20:00</div>
+    <div id="horloge"></div>
+
+    <script>
+        // Variables pour mémoriser l'état du minuteur
+        var enPause = false;
+        var minuteurInitial = "20:00";
+
+        // Variables pour la configuration du minuteur
+        var dureeMinuteurMinutes = 20; // Durée du minuteur en minutes
+        var dureeMinuteurSecondes = 0; // Durée du minuteur en secondes
+        var heureDemarrageMinuteur = { heures: 16, minutes: 05 }; // Heure de démarrage du minuteur
+        var heureFinMinuteur = { heures: 16, minutes: 06 }; // Heure de fin du minuteur
+
+        // Variables pour la configuration des pauses
+        var pauses = [
+            { debut: { heures: 14, minutes: 2 }, reprise: { heures: 14, minutes: 3 } },
+            { debut: { heures: 14, minutes: 5 }, reprise: { heures: 14, minutes: 6 } },
+            { debut: { heures: 14, minutes: 8 }, reprise: { heures: 14, minutes: 9 } }
+            // Ajoutez d'autres pauses au besoin
+        ];
+
+        // Fonction pour mettre à jour le minuteur
+        function mettreAJourMinuteur() {
+            var minuteurDiv = document.getElementById("minuteur");
+            var tempsRestant = minuteurDiv.innerHTML.split(":");
+            var minutes = parseInt(tempsRestant[0]);
+            var secondes = parseInt(tempsRestant[1]);
+            
+            if (!enPause) {
+                if (minutes === 0 && secondes === 0) {
+                    // Si le minuteur est terminé, démarre un nouveau minuteur
+                    demarrerNouveauMinuteur();
+                } else {
+                    if (secondes === 0) {
+                        minutes--;
+                        secondes = 59;
+                    } else {
+                        secondes--;
+                    }
+                    minuteurDiv.innerHTML = (minutes < 10 ? "0" : "") + minutes + ":" + (secondes < 10 ? "0" : "") + secondes;
+                }
+            }
+
+            // Vérifie si l'heure correspond à l'heure de fin du minuteur
+            var maintenant = new Date();
+            var heures = maintenant.getHours();
+            var minutes = maintenant.getMinutes();
+            var secondes = maintenant.getSeconds();
+
+            if (!enPause && heures === heureFinMinuteur.heures && minutes === heureFinMinuteur.minutes && secondes === 0) {
+                // Affiche "Fin de journée" seulement si le minuteur n'est pas en pause
+                if (!enPause && maintenant < nouvelleDateDemarrageMinuteur) {
+                    minuteurDiv.innerHTML = "Fin de journée";
+                    // Réinitialise l'état du minuteur après 2 secondes
+                    setTimeout(demarrerNouveauMinuteur, 10000);
+                }
+            }
+        }
+
+        // Fonction pour démarrer un nouveau minuteur
+        function demarrerNouveauMinuteur() {
+            // Réinitialise l'état du minuteur
+            enPause = false;
+            // Réinitialise le minuteur à la valeur initiale
+            document.getElementById("minuteur").innerHTML = dureeMinuteurMinutes + ":" + (dureeMinuteurSecondes < 10 ? "0" : "") + dureeMinuteurSecondes;
+        }
+        
+        // Fonction pour mettre à jour l'horloge
+        function mettreAJourHorloge() {
+            var horlogeDiv = document.getElementById("horloge");
+            var maintenant = new Date();
+            var heures = maintenant.getHours();
+            var minutes = maintenant.getMinutes();
+            var secondes = maintenant.getSeconds();
+	    var nouvelleDateDemarrageMinuteur = new Date();
+   	    nouvelleDateDemarrageMinuteur.setHours(heureDemarrageMinuteur.heures);
+            nouvelleDateDemarrageMinuteur.setMinutes(heureDemarrageMinuteur.minutes);
+            nouvelleDateDemarrageMinuteur.setSeconds(0);
+
+            
+            var heureAffichee = (heures < 10 ? "0" : "") + heures + ":" + (minutes < 10 ? "0" : "") + minutes + ":" + (secondes < 10 ? "0" : "") + secondes;
+            
+            horlogeDiv.innerHTML = "Il est actuellement : " + heureAffichee;
+            
+            // Vérifie si l'heure correspond à une pause
+            for (var i = 0; i < pauses.length; i++) {
+                var pause = pauses[i];
+                if (heures === pause.debut.heures && minutes === pause.debut.minutes && secondes === 0) {
+                    // Met le minuteur en pause et mémorise la valeur
+                    enPause = true;
+                    minuteurInitial = document.getElementById("minuteur").innerHTML;
+                }
+
+                if (heures === pause.reprise.heures && minutes === pause.reprise.minutes && secondes === 0) {
+                    // Reprend le minuteur depuis la valeur mémorisée
+                    enPause = false;
+                    document.getElementById("minuteur").innerHTML = minuteurInitial;
+                }
+            }
+
+            // Vérifie si l'heure correspond à l'heure de démarrage du minuteur
+            if (heures === heureDemarrageMinuteur.heures && minutes === heureDemarrageMinuteur.minutes && secondes === 0) {
+                // Démarrer le minuteur
+                demarrerNouveauMinuteur();
+            }
+        }
+        
+        // Démarrer le minuteur lorsque la page se charge
+        window.onload = function() {
+            mettreAJourHorloge(); // Afficher l'horloge
+            setInterval(mettreAJourHorloge, 1000); // Mettre à jour l'horloge chaque seconde
+            
+            mettreAJourMinuteur(); // Démarrer le minuteur
+            setInterval(mettreAJourMinuteur, 1000); // Mettre à jour le minuteur chaque seconde
+        };
+    </script>
+</body>
+</html>
